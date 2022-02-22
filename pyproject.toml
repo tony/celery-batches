@@ -1,3 +1,67 @@
+[tool.poetry]
+name = "celery-batches"
+version = "0.6"
+description = "Experimental task class that buffers messages and processes them as a list."
+authors = ["Patrick Cloke <clokep@patrick.cloke.us>"]
+homepage = "https://github.com/clokep/celery-batches"
+keywords = ["task", "job", "queue", "distributed", "messaging", "actor"]
+license = "BSD"
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "License :: OSI Approved :: BSD License",
+    "Topic :: System :: Distributed Computing",
+    "Topic :: Software Development :: Object Brokering",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: Implementation :: CPython",
+    "Programming Language :: Python :: Implementation :: PyPy",
+    "Operating System :: OS Independent"
+]
+packages = [
+    { include = "celery_batches" }
+]
+include = [
+    { path = "CHANGELOG.rst", format = "sdist" },
+    { path = "t", format = "sdist" },
+    { path = "docs", format = "sdist" },
+]
+
+[tool.poetry.urls]
+Documentation = "https://celery-batches.readthedocs.io"
+"Release notes" = "https://github.com/clokep/celery-batches/blob/main/CHANGELOG.rst"
+Source = "https://github.com/clokep/celery-batches"
+Tracker = "https://github.com/clokep/celery-batches/issues"
+
+[tool.poetry.dependencies]
+python = "^3.7"
+celery = {version=">=4.4,<5.3", optional=true}
+
+[tool.poetry.dev-dependencies]
+### Docs ###
+sphinx = ">=3.0.0"
+sphinx_celery = "==2.0.0"
+
+### Testing ###
+pytest = "~6.2"
+pytest-celery = "*"
+
+### Coverage ###
+coverage = "*"
+
+### Lint ###
+flake8 = ">3.5.0"
+
+[tool.poetry.extras]
+docs = ["sphinx", "sphinx_celery"]
+test = ["pytest", "pytest-celery"]
+coverage = ["coverage"]
+lint = ["flake8"]
+
 [build-system]
-requires = ["setuptools>=42.0.0", "wheel"]
-build-backend = "setuptools.build_meta"
+requires = ["poetry_core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
