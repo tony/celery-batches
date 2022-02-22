@@ -24,27 +24,60 @@ jobs:
         with:
           python-version: "${{ matrix.python-version }}"
 
+      - name: Install poetry
+        run: |
+          curl -O -sSL https://install.python-poetry.org/install-poetry.py
+          python install-poetry.py -y --version 1.1.12
+          echo "PATH=${HOME}/.poetry/bin:${PATH}" >> $GITHUB_ENV
+          rm install-poetry.py
+
+      - name: Add ~/.local/bin to PATH
+        run: echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+      - name: Get poetry cache paths from config
+        run: |
+          echo "poetry_cache_dir=$(poetry config --list | sed -n 's/.*cache-dir = //p' | sed -e 's/^\"//' -e 's/\"$//')" >> $GITHUB_ENV
+          echo "poetry_virtualenvs_path=$(poetry config --list | sed -n 's/.*virtualenvs.path = .* # //p' | sed -e 's/^\"//' -e 's/\"$//')" >> $GITHUB_ENV
+
+      - name: Configure poetry
+        shell: bash
+        run: poetry config virtualenvs.in-project true
+
+      - name: Set up poetry cache
+        uses: actions/cache@v2
+        id: cache
+        with:
+          path: |
+            .venv
+            ${{ env.poetry_cache_dir }}
+            ${{ env.poetry_virtualenvs_path }}
+          key: venv-${{ runner.os }}-${{ steps.full-python-version.outputs.version }}-${{ hashFiles('**/poetry.lock') }}
+      - name: Ensure cache is healthy
+        if: steps.cache.outputs.cache-hit == 'true'
+        shell: bash
+        run: poetry run pip --version >/dev/null 2>&1 || rm -rf .venv
+
       - name: "Install dependencies"
         run: |
           set -xe
           python -VV
-          python -m site
-          python -m pip install --upgrade pip setuptools wheel
-          python -m pip install --upgrade tox
+          poetry run python -VV
+          poetry install
+          poetry run pip install --upgrade tox
 
       - name: "Run lint"
         if: ${{ matrix.python-version == '3.6' }}
         env:
           TOXENV: "flake8"
-        run: "python -m tox"
+        run: "poetry run tox"
 
       - name: "Run tox targets for ${{ matrix.python-version }}"
         env:
           TOX_SKIP_ENV: ".*celerymaster.*"
-        run: "python -m tox"
+        run: "poetry run tox"
 
       - name: "Run tox targets for ${{ matrix.python-version }} for celery master"
         env:
           TOX_SKIP_ENV: ".*celery[^m].*"
-        run: "python -m tox"
+        run: "poetry run tox"
         continue-on-error: true
